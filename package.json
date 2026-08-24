@@ -1,0 +1,9 @@
+{
+  "name": "ride-weather",
+  "version": "1.0.0",
+  "private": true,
+  "description": "See the weather along your bike route before you leave.",
+  "engines": {
+    "node": ">=18"
+  }
+}
