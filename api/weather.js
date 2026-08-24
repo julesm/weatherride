@@ -5,37 +5,38 @@
 // returns 403. Replace the contact email below with your own before you
 // deploy — see README.
 
-const USER_AGENT = 'ride-weather-app/1.0 github.com/julesmataly (julesmataly@gmail.com)';
+const USER_AGENT = 'ride-weather-app/1.0 github.com/YOUR-USERNAME (YOUR-EMAIL@example.com)';
 
+// category maps to a custom SVG icon rendered client-side (see app.js `icon()`)
 const SYMBOLS = {
-  clearsky: { icon: '☀️', label: 'Clear sky' },
-  fair: { icon: '🌤️', label: 'Fair' },
-  partlycloudy: { icon: '⛅', label: 'Partly cloudy' },
-  cloudy: { icon: '☁️', label: 'Cloudy' },
-  fog: { icon: '🌫️', label: 'Fog' },
-  lightrain: { icon: '🌦️', label: 'Light rain' },
-  rain: { icon: '🌧️', label: 'Rain' },
-  heavyrain: { icon: '🌧️', label: 'Heavy rain' },
-  lightrainshowers: { icon: '🌦️', label: 'Light showers' },
-  rainshowers: { icon: '🌦️', label: 'Rain showers' },
-  heavyrainshowers: { icon: '🌧️', label: 'Heavy showers' },
-  lightsleet: { icon: '🌨️', label: 'Light sleet' },
-  sleet: { icon: '🌨️', label: 'Sleet' },
-  heavysleet: { icon: '🌨️', label: 'Heavy sleet' },
-  lightsnow: { icon: '🌨️', label: 'Light snow' },
-  snow: { icon: '❄️', label: 'Snow' },
-  heavysnow: { icon: '❄️', label: 'Heavy snow' },
-  lightsnowshowers: { icon: '🌨️', label: 'Light snow showers' },
-  snowshowers: { icon: '🌨️', label: 'Snow showers' },
-  rainandthunder: { icon: '⛈️', label: 'Thunder & rain' },
-  rainshowersandthunder: { icon: '⛈️', label: 'Thunder showers' },
-  thunderstorm: { icon: '⛈️', label: 'Thunderstorm' },
+  clearsky: { category: 'sun', label: 'Clear sky' },
+  fair: { category: 'sun-cloud', label: 'Fair' },
+  partlycloudy: { category: 'sun-cloud', label: 'Partly cloudy' },
+  cloudy: { category: 'cloud', label: 'Cloudy' },
+  fog: { category: 'fog', label: 'Fog' },
+  lightrain: { category: 'rain', label: 'Light rain' },
+  rain: { category: 'rain', label: 'Rain' },
+  heavyrain: { category: 'rain', label: 'Heavy rain' },
+  lightrainshowers: { category: 'rain', label: 'Light showers' },
+  rainshowers: { category: 'rain', label: 'Rain showers' },
+  heavyrainshowers: { category: 'rain', label: 'Heavy showers' },
+  lightsleet: { category: 'sleet', label: 'Light sleet' },
+  sleet: { category: 'sleet', label: 'Sleet' },
+  heavysleet: { category: 'sleet', label: 'Heavy sleet' },
+  lightsnow: { category: 'snow', label: 'Light snow' },
+  snow: { category: 'snow', label: 'Snow' },
+  heavysnow: { category: 'snow', label: 'Heavy snow' },
+  lightsnowshowers: { category: 'snow', label: 'Light snow showers' },
+  snowshowers: { category: 'snow', label: 'Snow showers' },
+  rainandthunder: { category: 'thunder', label: 'Thunder & rain' },
+  rainshowersandthunder: { category: 'thunder', label: 'Thunder showers' },
+  thunderstorm: { category: 'thunder', label: 'Thunderstorm' },
 };
 
 function symbolFor(code) {
-  if (!code) return { icon: '—', label: 'No data' };
+  if (!code) return { category: 'unknown', label: 'No data' };
   const base = code.replace(/_(day|night|polartwilight)$/, '');
-  return SYMBOLS[base] || { icon: '—', label: base };
+  return SYMBOLS[base] || { category: 'unknown', label: base };
 }
 
 function nearestEntry(timeseries, targetIso) {
