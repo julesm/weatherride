@@ -7,7 +7,7 @@
 <meta name="description" content="Paste a route. Get the weather along it." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -15,7 +15,6 @@
 <div class="frame">
 
   <header class="masthead">
-    <div class="masthead__mark">RW</div>
     <div class="masthead__title">
       <h1>RIDE&nbsp;/&nbsp;WEATHER</h1>
       <p class="masthead__sub">Forecast along your route, not just at your door.</p>
@@ -91,7 +90,7 @@
         <div class="field">
           <label for="speed">04 — Average speed</label>
           <div class="speed-input">
-            <input type="number" id="speed" name="speed" min="5" max="60" step="0.5" value="24" required />
+            <input type="number" id="speed" name="speed" min="5" max="60" step="1" value="24" required inputmode="numeric" />
             <span class="unit">km/h</span>
           </div>
         </div>
@@ -114,7 +113,7 @@
         </div>
         <div class="board__stats">
           <div><span class="num" id="stat-distance">—</span><span class="unit">km</span></div>
-          <div><span class="num" id="stat-duration">—</span><span class="unit">h</span></div>
+          <div><span class="num" id="stat-duration">—</span></div>
           <div><span class="num" id="stat-points">—</span><span class="unit">stops</span></div>
         </div>
       </div>
@@ -138,6 +137,9 @@
   <footer class="colophon">
     <span>Weather data — MET Norway (yr.no)</span>
     <span>Route data — RideWithGPS</span>
+    <span>Place names — OpenStreetMap contributors</span>
+    <span>Open source — MIT license</span>
+    <span><a href="https://github.com/YOUR-USERNAME/ride-weather" target="_blank" rel="noopener">Source on GitHub</a></span>
   </footer>
 
 </div>

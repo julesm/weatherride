@@ -4,17 +4,23 @@ Paste a RideWithGPS route (or upload a GPX file), say when you're leaving and
 how fast you ride, and get the weather forecast at points spaced out along
 your route — not just at your front door.
 
-## Before you deploy — one required edit
+## Before you deploy — required edits
 
-yr.no (the weather service) requires every app to identify itself with a
-real contact email, or it blocks the requests. Open `api/weather.js`, find
-this line near the top, and replace it with your own info:
+**1. yr.no needs a real contact email.** Open `api/weather.js`, find this line near the top, and replace it with your own info:
 
 ```js
 const USER_AGENT = 'ride-weather-app/1.0 github.com/YOUR-USERNAME (YOUR-EMAIL@example.com)';
 ```
 
-That's the only thing you need to change. Everything else works as-is.
+**2. So does the place-name lookup.** Open `api/placename.js` and make the same edit — it uses OpenStreetMap's Nominatim service, which has the same courtesy requirement:
+
+```js
+const USER_AGENT = 'ride-weather-app/1.0 github.com/YOUR-USERNAME (YOUR-EMAIL@example.com)';
+```
+
+**3. (Optional) Point the footer link at your repo.** In `index.html`, find `href="https://github.com/YOUR-USERNAME/ride-weather"` and swap in your own repo URL once you've created it — or delete that line if you'd rather not link it.
+
+That's it — everything else works as-is.
 
 ## How to put this on the internet (free, ~10 minutes)
 
@@ -42,20 +48,24 @@ it) and Vercel will automatically redeploy the site with your change.
 - **Paste link**: works with a full RideWithGPS URL (`ridewithgps.com/routes/12345678`) or just the number. The route must be public.
 - **Upload GPX**: works with a GPX file exported from Strava, Komoot, Garmin Connect, or anywhere else — handy for private routes.
 - Departure defaults to tomorrow at 9:00, average speed defaults to 24 km/h — both editable.
-- The number of weather points scales with distance: 3 for routes up to 50 km, up to 8 for rides over 200 km.
+- **Whole route vs a section**: by default you get points across the entire route. Switch to "From km / to km" to isolate part of a longer route — useful for multi-day tours where one big file covers the whole trip but you only want today's section. The departure time you enter applies to the start of whatever section you selected (km X on that day), not the start of the whole route.
+- The number of weather points scales with the length of the section you're looking at: 3 for up to 50 km, up to 8 for over 200 km.
 
 ## Project structure
 
 ```
-index.html      the page
-style.css       styling
-app.js          all the logic — parses the route, picks points, calls the API
-api/route.js    fetches a RideWithGPS route (server-side, avoids CORS)
-api/weather.js  fetches yr.no forecasts for each point
+index.html         the page
+style.css           styling
+app.js              all the logic — parses the route, picks points, calls the API
+api/route.js        fetches a RideWithGPS route (server-side, avoids CORS)
+api/weather.js       fetches yr.no forecasts for each point
+api/placename.js     looks up a place name for each point (OpenStreetMap)
+LICENSE             MIT license
 ```
 
 ## Limits worth knowing
 
 - Private RideWithGPS routes can't be read this way — use the GPX upload for those.
 - Weather forecasts only extend about 9 days out; departures further ahead won't have data yet.
-- yr.no is a free public service — be reasonable with how often you hit "Get forecast."
+- yr.no and OpenStreetMap are free public services — be reasonable with how often you hit "Get forecast."
+- Place names come from OpenStreetMap and aren't always perfectly precise in very rural areas — you'll sometimes get the nearest village rather than the exact spot.

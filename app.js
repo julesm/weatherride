@@ -110,28 +110,118 @@
     });
   }
 
-  // ---------- Minimal Swiss-style weather icons ----------
-  // Simple geometric strokes, no fills, built to match the ticket/grid look.
-  const ICONS = {
-    sun: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></svg>`,
-    'sun-cloud': `<svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3.2"/><path d="M8 2.5v1.6M8 12v1.6M2.5 8h1.6M12 8h1.6M4.3 4.3l1.1 1.1M10.6 10.6l1.1 1.1M11.7 4.3l-1.1 1.1M5.4 10.6l-1.1 1.1"/><path class="accent" d="M9 20.5h8.5a3.5 3.5 0 0 0 .4-6.98A5 5 0 0 0 8.2 15.4a3.2 3.2 0 0 0 .8 6.1" transform="translate(0,-1)"/></svg>`,
-    cloud: `<svg viewBox="0 0 24 24"><path d="M7 19h10.5a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 7.5 12.2 3.5 3.5 0 0 0 7 19Z"/></svg>`,
-    fog: `<svg viewBox="0 0 24 24"><path d="M4 8h16M4 12h16M6 16h12M8 20h8"/></svg>`,
-    rain: `<svg viewBox="0 0 24 24"><path d="M6.5 14.5h10.2a3.6 3.6 0 0 0 .5-7.17A5 5 0 0 0 7.7 8.1a3.2 3.2 0 0 0-1.2 6.4Z"/><path class="accent" d="M8 18l-1 3M12 18l-1 3M16 18l-1 3"/></svg>`,
-    sleet: `<svg viewBox="0 0 24 24"><path d="M6.5 13.5h10.2a3.6 3.6 0 0 0 .5-7.17A5 5 0 0 0 7.7 7.1a3.2 3.2 0 0 0-1.2 6.4Z"/><path class="accent" d="M8 17l-1 2.5M12 17v3M16 17l-1 2.5"/></svg>`,
-    snow: `<svg viewBox="0 0 24 24"><path d="M6.5 13h10.2a3.6 3.6 0 0 0 .5-7.17A5 5 0 0 0 7.7 6.6a3.2 3.2 0 0 0-1.2 6.4Z"/><g class="accent"><path d="M9 19v3M9 19l-1.6 1M9 19l1.6 1"/><path d="M15 19v3M15 19l-1.6 1M15 19l1.6 1"/></g></svg>`,
-    thunder: `<svg viewBox="0 0 24 24"><path d="M6.5 13h10.2a3.6 3.6 0 0 0 .5-7.17A5 5 0 0 0 7.7 6.6a3.2 3.2 0 0 0-1.2 6.4Z"/><path class="accent" d="M13 15.5l-3 4.5h3l-1.5 3.5" fill="none"/></svg>`,
-    unknown: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1.5 4.5c-.7.5-1.5 1-1.5 2"/></svg>`,
-  };
+  // ---------- Colour Swiss-style weather icons ----------
+  // Flat geometric shapes with soft gradients — sun=yellow, cloud=grey, rain/snow/sleet tinted blue/white, thunder=amber bolt.
+  // Gradient ids are suffixed with a unique id per render to avoid collisions across rows.
+  function iconSvg(category, uid) {
+    const g = (name) => `${name}-${uid}`;
+    switch (category) {
+      case 'sun':
+        return `<svg viewBox="0 0 24 24">
+          <defs><radialGradient id="${g('sun')}" cx="35%" cy="35%" r="70%">
+            <stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/>
+          </radialGradient></defs>
+          <g stroke="#F2A900" stroke-width="1.4" stroke-linecap="round">
+            <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.7 4.7l2.1 2.1M17.2 17.2l2.1 2.1M19.3 4.7l-2.1 2.1M6.8 17.2l-2.1 2.1"/>
+          </g>
+          <circle cx="12" cy="12" r="5.6" fill="url(#${g('sun')})"/>
+        </svg>`;
+      case 'sun-cloud':
+        return `<svg viewBox="0 0 24 24">
+          <defs>
+            <radialGradient id="${g('sunc')}" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/></radialGradient>
+            <linearGradient id="${g('cloudc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E7E9ED"/><stop offset="100%" stop-color="#BEC3CB"/></linearGradient>
+          </defs>
+          <circle cx="9" cy="8" r="4.4" fill="url(#${g('sunc')})"/>
+          <path d="M8.5 20.5h8.2a3.6 3.6 0 0 0 .4-7.18A5.1 5.1 0 0 0 7.6 14.9a3.3 3.3 0 0 0 .9 5.6Z" fill="url(#${g('cloudc')})" stroke="#9EA4AD" stroke-width="0.8"/>
+        </svg>`;
+      case 'cloud':
+        return `<svg viewBox="0 0 24 24">
+          <defs><linearGradient id="${g('cloud')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E7E9ED"/><stop offset="100%" stop-color="#B3B9C2"/></linearGradient></defs>
+          <path d="M6 19h11.5a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 7.4 12.1 3.5 3.5 0 0 0 6 19Z" fill="url(#${g('cloud')})" stroke="#9198A2" stroke-width="0.8"/>
+        </svg>`;
+      case 'fog':
+        return `<svg viewBox="0 0 24 24">
+          <g stroke="#AFB5BD" stroke-width="1.6" stroke-linecap="round">
+            <path d="M4 7.5h16" opacity="0.5"/><path d="M3 11.5h18" opacity="0.75"/><path d="M4 15.5h16"/><path d="M6 19.5h12" opacity="0.6"/>
+          </g>
+        </svg>`;
+      case 'rain':
+        return `<svg viewBox="0 0 24 24">
+          <defs>
+            <linearGradient id="${g('rc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#DADDE2"/><stop offset="100%" stop-color="#AEB4BD"/></linearGradient>
+            <linearGradient id="${g('rd')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6FB3F2"/><stop offset="100%" stop-color="#1E7FE0"/></linearGradient>
+          </defs>
+          <path d="M5.8 13.8h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('rc')})" stroke="#9198A2" stroke-width="0.8"/>
+          <g fill="url(#${g('rd')})"><path d="M8.5 17.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M13 18.3c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M17.5 17.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/></g>
+        </svg>`;
+      case 'sleet':
+        return `<svg viewBox="0 0 24 24">
+          <defs><linearGradient id="${g('sc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#DADDE2"/><stop offset="100%" stop-color="#AEB4BD"/></linearGradient></defs>
+          <path d="M5.8 13.3h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('sc')})" stroke="#9198A2" stroke-width="0.8"/>
+          <path d="M8 17.3c0 .9-1.5.9-1.5 0 0-.65.75-1.6.75-1.6s.75.95.75 1.6Z" fill="#4FA0E8"/>
+          <g stroke="#B9DCFF" stroke-width="1.3" stroke-linecap="round"><path d="M12.2 16v3.4M10.8 16.9l2.8 1.6M15 16.9l-2.8 1.6"/></g>
+        </svg>`;
+      case 'snow':
+        return `<svg viewBox="0 0 24 24">
+          <defs><linearGradient id="${g('nc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E7E9ED"/><stop offset="100%" stop-color="#C3C8D0"/></linearGradient></defs>
+          <path d="M5.8 12.8h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('nc')})" stroke="#9198A2" stroke-width="0.8"/>
+          <g stroke="#8FC4F5" stroke-width="1.3" stroke-linecap="round">
+            <path d="M8 16v4M6.3 17.1l3.4 1.8M11.4 17.1 8 18.9"/>
+            <path d="M16 16v4M14.3 17.1l3.4 1.8M19.4 17.1 16 18.9"/>
+          </g>
+        </svg>`;
+      case 'thunder':
+        return `<svg viewBox="0 0 24 24">
+          <defs>
+            <linearGradient id="${g('tc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C7CBD1"/><stop offset="100%" stop-color="#8D93A0"/></linearGradient>
+            <linearGradient id="${g('tb')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD666"/><stop offset="100%" stop-color="#F2860B"/></linearGradient>
+          </defs>
+          <path d="M5.8 12.3h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('tc')})" stroke="#767C86" stroke-width="0.8"/>
+          <path d="M13.4 14l-3.6 5.4h2.6L11 23l4.6-6.2h-2.7l1-2.8Z" fill="url(#${g('tb')})"/>
+        </svg>`;
+      default:
+        return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#C3C8D0" stroke-width="1.4"/><path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1.5 4.5c-.7.5-1.5 1-1.5 2" fill="none" stroke="#C3C8D0" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+    }
+  }
 
-  function icon(category) {
-    return ICONS[category] || ICONS.unknown;
+  function icon(category, uid) {
+    return iconSvg(category, uid);
+  }
+
+  // Small arrow indicating where the wind is blowing TOWARD (met "from" direction + 180°)
+  function windArrowSvg(fromDegrees) {
+    const toDegrees = (fromDegrees + 180) % 360;
+    return `<svg class="wind-arrow" viewBox="0 0 24 24" style="transform: rotate(${toDegrees}deg)">
+      <path d="M12 2 L17 14 L12 11 L7 14 Z" fill="#6B6F76"/>
+    </svg>`;
+  }
+
+  function degToCompass(deg) {
+    const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    return dirs[Math.round(deg / 22.5) % 16];
   }
 
   function labelFor(index, count, distKm, isWholeRoute) {
     if (isWholeRoute && index === 0) return 'Start';
     if (isWholeRoute && index === count - 1) return 'Finish';
     return `KM ${Math.round(distKm)}`;
+  }
+
+  const WEEKDAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+  function formatArrival(date) {
+    const day = WEEKDAYS[date.getDay()];
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    return `${day} ${hh}:${mm}`;
+  }
+
+  function formatDuration(hoursFloat) {
+    const totalMinutes = Math.round(hoursFloat * 60);
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, '0')}min`;
   }
 
   // ---------- Route sources ----------
@@ -198,9 +288,9 @@
   }
 
   // ---------- Weather ----------
-  async function fetchWeather(stations, departureDate, speedKmh) {
-    const payload = stations.map((s, i) => {
-      const hours = s.targetKm / speedKmh;
+  async function fetchWeather(stations, departureDate, speedKmh, fromKm) {
+    const payload = stations.map((s) => {
+      const hours = (s.targetKm - fromKm) / speedKmh;
       const arrival = new Date(departureDate.getTime() + hours * 3600 * 1000);
       return {
         lat: s.lat,
@@ -218,6 +308,22 @@
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Could not fetch weather.');
     return data.results;
+  }
+
+  // ---------- Place names ----------
+  async function fetchPlaceNames(stations) {
+    try {
+      const res = await fetch('/api/placename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ points: stations.map((s) => ({ lat: s.lat, lon: s.lon })) }),
+      });
+      if (!res.ok) return stations.map(() => null);
+      const data = await res.json();
+      return data.results.map((r) => r.name || null);
+    } catch {
+      return stations.map(() => null);
+    }
   }
 
   // ---------- Rendering ----------
@@ -258,11 +364,7 @@
     `;
   }
 
-  function yrLink(lat, lon) {
-    return `https://www.yr.no/en/search/${lat.toFixed(4)},${lon.toFixed(4)}`;
-  }
-
-  function renderStations(stations, weatherResults, isWholeRoute) {
+  function renderStations(stations, weatherResults, isWholeRoute, placeNames) {
     stationsEl.innerHTML = '';
     stations.forEach((s, i) => {
       const w = weatherResults[i];
@@ -270,20 +372,23 @@
       row.className = 'station';
 
       const arrival = new Date(w.time);
-      const timeStr = arrival.toLocaleString(undefined, {
-        weekday: 'short', hour: '2-digit', minute: '2-digit',
-      });
-      const link = yrLink(s.lat, s.lon);
+      const timeStr = formatArrival(arrival);
+      const kmLabel = labelFor(i, stations.length, s.targetKm, isWholeRoute);
+      const place = placeNames && placeNames[i];
+      const kmHtml = place
+        ? `${kmLabel} <span class="station__place">– ${place}</span>`
+        : kmLabel;
+      const uid = `${i}-${Math.round(s.targetKm)}`;
 
       if (!w.weather) {
         row.classList.add('station--error');
         row.innerHTML = `
           <div class="station__index">${String(i + 1).padStart(2, '0')}</div>
           <div class="station__info">
-            <span class="station__km"><a href="${link}" target="_blank" rel="noopener">${labelFor(i, stations.length, s.targetKm, isWholeRoute)}</a></span>
+            <span class="station__km">${kmHtml}</span>
             <span class="station__time">${timeStr}</span>
           </div>
-          <div class="station__symbol">${icon('unknown')}</div>
+          <div class="station__symbol">${icon('unknown', uid)}</div>
           <div class="station__detail"><span class="station__sub">${w.error || 'No data'}</span></div>
         `;
         stationsEl.appendChild(row);
@@ -292,19 +397,24 @@
 
       const t = w.weather.temperature;
       const wind = w.weather.windSpeed;
+      const windDir = w.weather.windDirection;
       const precip = w.weather.precipitation;
       const isWarm = typeof t === 'number' && t >= 20;
+
+      const windHtml = wind !== null
+        ? `${windDir !== null ? windArrowSvg(windDir) : ''}${Math.round(wind)} m/s${windDir !== null ? ` ${degToCompass(windDir)}` : ''}`
+        : '';
 
       row.innerHTML = `
         <div class="station__index">${String(i + 1).padStart(2, '0')}</div>
         <div class="station__info">
-          <span class="station__km"><a href="${link}" target="_blank" rel="noopener" title="See this spot on yr.no">${labelFor(i, stations.length, s.targetKm, isWholeRoute)}</a></span>
+          <span class="station__km">${kmHtml}</span>
           <span class="station__time">${timeStr}</span>
         </div>
-        <div class="station__symbol" title="${w.weather.symbol.label}">${icon(w.weather.symbol.category)}</div>
+        <div class="station__symbol" title="${w.weather.symbol.label}">${icon(w.weather.symbol.category, uid)}</div>
         <div class="station__detail">
           <span class="station__temp ${isWarm ? 'is-warm' : ''}">${t !== null ? Math.round(t) + '°' : '—'}</span>
-          <span class="station__sub">${wind !== null ? Math.round(wind) + ' m/s wind' : ''}${precip ? ` · ${precip}mm` : ''}</span>
+          <span class="station__sub">${windHtml}${precip ? ` · ${precip}mm` : ''}</span>
         </div>
       `;
       stationsEl.appendChild(row);
@@ -317,7 +427,7 @@
     formError.hidden = true;
     board.hidden = true;
 
-    const speed = parseFloat(speedInput.value);
+    const speed = Math.round(parseFloat(speedInput.value));
     if (!speed || speed <= 0) {
       showError('Enter a valid average speed.');
       return;
@@ -368,15 +478,18 @@
       const count = stationCountFor(segmentKm);
       const stations = pickStations(ride.points, count, fromKm, toKm);
 
-      const weatherResults = await fetchWeather(stations, departureDate, speed);
+      const [weatherResults, placeNames] = await Promise.all([
+        fetchWeather(stations, departureDate, speed, fromKm),
+        fetchPlaceNames(stations),
+      ]);
 
       routeNameEl.textContent = ride.name;
       statDistance.textContent = segmentKm.toFixed(0);
-      statDuration.textContent = (segmentKm / speed).toFixed(1);
+      statDuration.textContent = formatDuration(segmentKm / speed);
       statPoints.textContent = String(count);
 
       renderElevationProfile(ride.points, fromKm, toKm);
-      renderStations(stations, weatherResults, isWholeRoute);
+      renderStations(stations, weatherResults, isWholeRoute, placeNames);
 
       loading.hidden = true;
       board.hidden = false;
