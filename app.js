@@ -111,77 +111,78 @@
   }
 
   // ---------- Colour Swiss-style weather icons ----------
-  // Flat geometric shapes with soft gradients — sun=yellow, cloud=grey, rain/snow/sleet tinted blue/white, thunder=amber bolt.
+  // Every icon is a flat circular "badge" of the same size and position
+  // (cx=12, cy=12, r=9) so rows line up no matter which weather type shows.
   // Gradient ids are suffixed with a unique id per render to avoid collisions across rows.
   function iconSvg(category, uid) {
     const g = (name) => `${name}-${uid}`;
     switch (category) {
       case 'sun':
         return `<svg viewBox="0 0 24 24">
-          <defs><radialGradient id="${g('sun')}" cx="35%" cy="35%" r="70%">
+          <defs><radialGradient id="${g('sun')}" cx="35%" cy="30%" r="75%">
             <stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/>
           </radialGradient></defs>
-          <g stroke="#F2A900" stroke-width="1.4" stroke-linecap="round">
-            <path d="M12 1.5v3M12 19.5v3M1.5 12h3M19.5 12h3M4.7 4.7l2.1 2.1M17.2 17.2l2.1 2.1M19.3 4.7l-2.1 2.1M6.8 17.2l-2.1 2.1"/>
-          </g>
-          <circle cx="12" cy="12" r="5.6" fill="url(#${g('sun')})"/>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('sun')})"/>
         </svg>`;
       case 'sun-cloud':
         return `<svg viewBox="0 0 24 24">
           <defs>
-            <radialGradient id="${g('sunc')}" cx="35%" cy="35%" r="70%"><stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/></radialGradient>
-            <linearGradient id="${g('cloudc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E7E9ED"/><stop offset="100%" stop-color="#BEC3CB"/></linearGradient>
+            <radialGradient id="${g('sunc')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/></radialGradient>
+            <linearGradient id="${g('cloudc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F1F2F4"/><stop offset="100%" stop-color="#C7CCD3"/></linearGradient>
           </defs>
-          <circle cx="9" cy="8" r="4.4" fill="url(#${g('sunc')})"/>
-          <path d="M8.5 20.5h8.2a3.6 3.6 0 0 0 .4-7.18A5.1 5.1 0 0 0 7.6 14.9a3.3 3.3 0 0 0 .9 5.6Z" fill="url(#${g('cloudc')})" stroke="#9EA4AD" stroke-width="0.8"/>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('sunc')})"/>
+          <ellipse cx="13.3" cy="14.3" rx="6.2" ry="4.2" fill="url(#${g('cloudc')})"/>
         </svg>`;
       case 'cloud':
         return `<svg viewBox="0 0 24 24">
-          <defs><linearGradient id="${g('cloud')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E7E9ED"/><stop offset="100%" stop-color="#B3B9C2"/></linearGradient></defs>
-          <path d="M6 19h11.5a4 4 0 0 0 .5-7.97A5.5 5.5 0 0 0 7.4 12.1 3.5 3.5 0 0 0 6 19Z" fill="url(#${g('cloud')})" stroke="#9198A2" stroke-width="0.8"/>
+          <defs><radialGradient id="${g('cloud')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#DEE1E5"/><stop offset="100%" stop-color="#AFB5BE"/></radialGradient></defs>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('cloud')})"/>
         </svg>`;
       case 'fog':
         return `<svg viewBox="0 0 24 24">
-          <g stroke="#AFB5BD" stroke-width="1.6" stroke-linecap="round">
-            <path d="M4 7.5h16" opacity="0.5"/><path d="M3 11.5h18" opacity="0.75"/><path d="M4 15.5h16"/><path d="M6 19.5h12" opacity="0.6"/>
+          <defs><radialGradient id="${g('fog')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#DEE1E5"/><stop offset="100%" stop-color="#AFB5BE"/></radialGradient></defs>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('fog')})"/>
+          <g stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity="0.85">
+            <path d="M7 10h10M6.5 13h11M7.5 16h9"/>
           </g>
         </svg>`;
       case 'rain':
         return `<svg viewBox="0 0 24 24">
           <defs>
-            <linearGradient id="${g('rc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#DADDE2"/><stop offset="100%" stop-color="#AEB4BD"/></linearGradient>
-            <linearGradient id="${g('rd')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#6FB3F2"/><stop offset="100%" stop-color="#1E7FE0"/></linearGradient>
+            <radialGradient id="${g('rc')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#8FB9E8"/><stop offset="100%" stop-color="#3E7FC4"/></radialGradient>
           </defs>
-          <path d="M5.8 13.8h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('rc')})" stroke="#9198A2" stroke-width="0.8"/>
-          <g fill="url(#${g('rd')})"><path d="M8.5 17.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M13 18.3c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M17.5 17.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/></g>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('rc')})"/>
+          <g fill="#fff"><path d="M9 11.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M13.6 12.6c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M17 11.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/></g>
         </svg>`;
       case 'sleet':
         return `<svg viewBox="0 0 24 24">
-          <defs><linearGradient id="${g('sc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#DADDE2"/><stop offset="100%" stop-color="#AEB4BD"/></linearGradient></defs>
-          <path d="M5.8 13.3h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('sc')})" stroke="#9198A2" stroke-width="0.8"/>
-          <path d="M8 17.3c0 .9-1.5.9-1.5 0 0-.65.75-1.6.75-1.6s.75.95.75 1.6Z" fill="#4FA0E8"/>
-          <g stroke="#B9DCFF" stroke-width="1.3" stroke-linecap="round"><path d="M12.2 16v3.4M10.8 16.9l2.8 1.6M15 16.9l-2.8 1.6"/></g>
+          <defs><radialGradient id="${g('sl')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#8FB9E8"/><stop offset="100%" stop-color="#3E7FC4"/></radialGradient></defs>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('sl')})"/>
+          <path d="M9.3 12.2c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z" fill="#fff"/>
+          <g stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M14.5 10.5v4.2M13.1 11.5l2.8 2.2M15.9 11.5l-2.8 2.2"/></g>
         </svg>`;
       case 'snow':
         return `<svg viewBox="0 0 24 24">
-          <defs><linearGradient id="${g('nc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#E7E9ED"/><stop offset="100%" stop-color="#C3C8D0"/></linearGradient></defs>
-          <path d="M5.8 12.8h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('nc')})" stroke="#9198A2" stroke-width="0.8"/>
-          <g stroke="#8FC4F5" stroke-width="1.3" stroke-linecap="round">
-            <path d="M8 16v4M6.3 17.1l3.4 1.8M11.4 17.1 8 18.9"/>
-            <path d="M16 16v4M14.3 17.1l3.4 1.8M19.4 17.1 16 18.9"/>
+          <defs><radialGradient id="${g('sn')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#DCEBFC"/><stop offset="100%" stop-color="#A9C9EE"/></radialGradient></defs>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('sn')})"/>
+          <g stroke="#fff" stroke-width="1.4" stroke-linecap="round">
+            <path d="M12 7.5v9M8.4 9.5l7.2 5M15.6 9.5l-7.2 5"/>
           </g>
         </svg>`;
       case 'thunder':
         return `<svg viewBox="0 0 24 24">
           <defs>
-            <linearGradient id="${g('tc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#C7CBD1"/><stop offset="100%" stop-color="#8D93A0"/></linearGradient>
+            <radialGradient id="${g('th')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#6E7382"/><stop offset="100%" stop-color="#3B3F4A"/></radialGradient>
             <linearGradient id="${g('tb')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD666"/><stop offset="100%" stop-color="#F2860B"/></linearGradient>
           </defs>
-          <path d="M5.8 12.3h10.6a3.6 3.6 0 0 0 .5-7.17 5 5 0 0 0-9.6.9 3.2 3.2 0 0 0-1.5 6.27Z" fill="url(#${g('tc')})" stroke="#767C86" stroke-width="0.8"/>
-          <path d="M13.4 14l-3.6 5.4h2.6L11 23l4.6-6.2h-2.7l1-2.8Z" fill="url(#${g('tb')})"/>
+          <circle cx="12" cy="12" r="9" fill="url(#${g('th')})"/>
+          <path d="M13.3 6.8 9 13.4h2.9l-1 4.4 4.6-6.6h-2.8l1-4.4Z" fill="url(#${g('tb')})"/>
         </svg>`;
       default:
-        return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="#C3C8D0" stroke-width="1.4"/><path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1.5 4.5c-.7.5-1.5 1-1.5 2" fill="none" stroke="#C3C8D0" stroke-width="1.4" stroke-linecap="round"/></svg>`;
+        return `<svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="#C3C8D0" stroke-width="1.4"/>
+          <path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1.5 4.5c-.7.5-1.5 1-1.5 2" fill="none" stroke="#C3C8D0" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>`;
     }
   }
 
@@ -193,7 +194,7 @@
   function windArrowSvg(fromDegrees) {
     const toDegrees = (fromDegrees + 180) % 360;
     return `<svg class="wind-arrow" viewBox="0 0 24 24" style="transform: rotate(${toDegrees}deg)">
-      <path d="M12 2 L17 14 L12 11 L7 14 Z" fill="#6B6F76"/>
+      <path d="M12 1.5 L19 16 L12 12.2 L5 16 Z" fill="#111111"/>
     </svg>`;
   }
 
@@ -327,7 +328,7 @@
   }
 
   // ---------- Rendering ----------
-  function renderElevationProfile(points, fromKm, toKm) {
+  function renderElevationProfile(points, fromKm, toKm, stations) {
     const w = 1000, h = 140, pad = 6;
     const eles = points.map((p) => p.ele).filter((e) => e !== null && e !== undefined);
     if (!eles.length) {
@@ -338,11 +339,12 @@
     const max = Math.max(...eles);
     const range = Math.max(max - min, 1);
     const total = points[points.length - 1].distKm || 1;
+    const xFor = (km) => pad + (km / total) * (w - pad * 2);
 
     const coords = points
       .filter((p) => p.ele !== null && p.ele !== undefined)
       .map((p) => {
-        const x = pad + (p.distKm / total) * (w - pad * 2);
+        const x = xFor(p.distKm);
         const y = h - pad - ((p.ele - min) / range) * (h - pad * 2);
         return `${x.toFixed(1)},${y.toFixed(1)}`;
       });
@@ -352,15 +354,30 @@
 
     let bandPath = '';
     if (typeof fromKm === 'number' && typeof toKm === 'number' && (fromKm > 0 || toKm < total)) {
-      const x1 = pad + (fromKm / total) * (w - pad * 2);
-      const x2 = pad + (toKm / total) * (w - pad * 2);
+      const x1 = xFor(fromKm);
+      const x2 = xFor(toKm);
       bandPath = `<rect x="${x1.toFixed(1)}" y="0" width="${(x2 - x1).toFixed(1)}" height="${h}" fill="#e1000f" opacity="0.12"></rect>`;
+    }
+
+    let markers = '';
+    if (stations && stations.length) {
+      markers = stations
+        .map((s, i) => {
+          const x = xFor(s.targetKm).toFixed(1);
+          return `
+            <line x1="${x}" y1="17" x2="${x}" y2="${h - 2}" stroke="#111111" stroke-width="1" stroke-dasharray="2,3" opacity="0.5"></line>
+            <rect x="${(x - 7).toFixed(1)}" y="2" width="14" height="14" fill="#f2f2ef"></rect>
+            <text x="${x}" y="12.5" text-anchor="middle" font-size="10" font-family="Inter, sans-serif" font-weight="600" fill="#111111">${i + 1}</text>
+          `;
+        })
+        .join('');
     }
 
     profileSvg.innerHTML = `
       ${bandPath}
       <path d="${fillPath}" fill="#e1000f" opacity="0.08" stroke="none"></path>
       <path d="${linePath}" fill="none" stroke="#111111" stroke-width="1.5"></path>
+      ${markers}
     `;
   }
 
@@ -488,7 +505,7 @@
       statDuration.textContent = formatDuration(segmentKm / speed);
       statPoints.textContent = String(count);
 
-      renderElevationProfile(ride.points, fromKm, toKm);
+      renderElevationProfile(ride.points, fromKm, toKm, stations);
       renderStations(stations, weatherResults, isWholeRoute, placeNames);
 
       loading.hidden = true;
