@@ -20,6 +20,8 @@
   const statDuration = document.getElementById('stat-duration');
   const statPoints = document.getElementById('stat-points');
   const profileSvg = document.getElementById('elevation-profile');
+  const copyLinkBtn = document.getElementById('copy-link-btn');
+  const copyLinkLabel = document.getElementById('copy-link-label');
 
   let activeSource = 'link';
   let activeRangeMode = 'whole';
@@ -329,7 +331,14 @@
 
   // ---------- Rendering ----------
   function renderElevationProfile(points, fromKm, toKm, stations) {
-    const w = 1000, h = 140, pad = 6;
+    // Match the viewBox to the actual rendered pixel width so that text and
+    // markers are a real, legible physical size on any screen — a fixed
+    // 1000-unit viewBox squashes to ~3px text on a narrow phone.
+    const measuredWidth = profileSvg.clientWidth || 1000;
+    const w = Math.max(measuredWidth, 280);
+    const h = 140, pad = 6;
+    profileSvg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+
     const eles = points.map((p) => p.ele).filter((e) => e !== null && e !== undefined);
     if (!eles.length) {
       profileSvg.innerHTML = '';
@@ -376,7 +385,7 @@
     profileSvg.innerHTML = `
       ${bandPath}
       <path d="${fillPath}" fill="#e1000f" opacity="0.08" stroke="none"></path>
-      <path d="${linePath}" fill="none" stroke="#111111" stroke-width="1.5"></path>
+      <path d="${linePath}" fill="none" stroke="#5A5D63" stroke-width="1.5"></path>
       ${markers}
     `;
   }
@@ -392,15 +401,15 @@
       const timeStr = formatArrival(arrival);
       const kmLabel = labelFor(i, stations.length, s.targetKm, isWholeRoute);
       const place = placeNames && placeNames[i];
+      const indexHtml = `<span class="station__index">${String(i + 1).padStart(2, '0')}</span>`;
       const kmHtml = place
-        ? `${kmLabel} <span class="station__place">– ${place}</span>`
-        : kmLabel;
+        ? `${indexHtml}${kmLabel} <span class="station__place">– ${place}</span>`
+        : `${indexHtml}${kmLabel}`;
       const uid = `${i}-${Math.round(s.targetKm)}`;
 
       if (!w.weather) {
         row.classList.add('station--error');
         row.innerHTML = `
-          <div class="station__index">${String(i + 1).padStart(2, '0')}</div>
           <div class="station__info">
             <span class="station__km">${kmHtml}</span>
             <span class="station__time">${timeStr}</span>
@@ -423,7 +432,6 @@
         : '';
 
       row.innerHTML = `
-        <div class="station__index">${String(i + 1).padStart(2, '0')}</div>
         <div class="station__info">
           <span class="station__km">${kmHtml}</span>
           <span class="station__time">${timeStr}</span>
@@ -505,11 +513,22 @@
       statDuration.textContent = formatDuration(segmentKm / speed);
       statPoints.textContent = String(count);
 
-      renderElevationProfile(ride.points, fromKm, toKm, stations);
-      renderStations(stations, weatherResults, isWholeRoute, placeNames);
-
       loading.hidden = true;
       board.hidden = false;
+
+      renderElevationProfile(ride.points, fromKm, toKm, stations);
+      lastProfileArgs = [ride.points, fromKm, toKm, stations];
+      renderStations(stations, weatherResults, isWholeRoute, placeNames);
+
+      if (activeSource === 'link') {
+        const routeId = extractRouteId(routeUrlInput.value);
+        updateShareUrl(routeId, dateInput.value, timeInput.value, speed, activeRangeMode, fromKm, toKm);
+        copyLinkBtn.hidden = !routeId;
+      } else {
+        copyLinkBtn.hidden = true;
+        history.replaceState(null, '', window.location.pathname);
+      }
+
       board.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
       loading.hidden = true;
@@ -519,8 +538,102 @@
     }
   });
 
+  let lastProfileArgs = null;
+
+  window.addEventListener('resize', () => {
+    if (!lastProfileArgs || board.hidden) return;
+    clearTimeout(window.__profileResizeTimer);
+    window.__profileResizeTimer = setTimeout(() => {
+      renderElevationProfile(...lastProfileArgs);
+    }, 150);
+  });
+
   function showError(msg) {
     formError.textContent = msg;
     formError.hidden = false;
   }
+
+  // ---------- Shareable links ----------
+  // Only works for pasted RideWithGPS links — a GPX upload can't be encoded
+  // in a URL, so those searches stay local to this browser.
+  function updateShareUrl(routeId, date, time, speedVal, rangeMode, fromKmVal, toKmVal) {
+    if (!routeId) return;
+    const params = new URLSearchParams();
+    params.set('route', routeId);
+    params.set('date', date);
+    params.set('time', time);
+    params.set('speed', String(speedVal));
+    params.set('range', rangeMode);
+    if (rangeMode === 'custom') {
+      params.set('from', String(fromKmVal));
+      params.set('to', String(toKmVal));
+    }
+    history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+  }
+
+  copyLinkBtn.addEventListener('click', async () => {
+    const url = window.location.href;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      const original = copyLinkLabel.textContent;
+      copyLinkLabel.textContent = 'Copied!';
+      setTimeout(() => { copyLinkLabel.textContent = original; }, 1600);
+    } catch {
+      copyLinkLabel.textContent = 'Could not copy — copy it from the address bar';
+    }
+  });
+
+  // If the page was opened with a shared link, prefill everything and run it.
+  function initFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const routeId = params.get('route');
+    if (!routeId) return;
+
+    document.querySelectorAll('.tab[data-tab]').forEach((t) => t.classList.remove('is-active'));
+    document.querySelectorAll('.tab-panel[data-panel]').forEach((p) => p.classList.remove('is-active'));
+    document.querySelector('.tab[data-tab="link"]').classList.add('is-active');
+    document.querySelector('.tab-panel[data-panel="link"]').classList.add('is-active');
+    activeSource = 'link';
+    routeUrlInput.value = routeId;
+
+    const date = params.get('date');
+    const time = params.get('time');
+    const speedParam = params.get('speed');
+    const rangeParam = params.get('range');
+
+    if (date) dateInput.value = date;
+    if (time) timeInput.value = time;
+    if (speedParam) speedInput.value = speedParam;
+
+    if (rangeParam === 'custom') {
+      document.querySelectorAll('.tab[data-range-tab]').forEach((t) => t.classList.remove('is-active'));
+      document.querySelectorAll('.tab-panel[data-range-panel]').forEach((p) => p.classList.remove('is-active'));
+      document.querySelector('.tab[data-range-tab="custom"]').classList.add('is-active');
+      document.querySelector('.tab-panel[data-range-panel="custom"]').classList.add('is-active');
+      activeRangeMode = 'custom';
+      const fromParam = params.get('from');
+      const toParam = params.get('to');
+      if (fromParam) rangeFromInput.value = fromParam;
+      if (toParam) rangeToInput.value = toParam;
+    }
+
+    if (form.requestSubmit) {
+      form.requestSubmit();
+    } else {
+      form.dispatchEvent(new Event('submit', { cancelable: true }));
+    }
+  }
+
+  initFromUrl();
 })();

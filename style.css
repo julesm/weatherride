@@ -289,6 +289,29 @@ input[type="file"] {
   letter-spacing: 0.04em;
 }
 
+.copy-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--grey-light);
+  text-underline-offset: 3px;
+}
+
+.copy-link:hover {
+  color: var(--red);
+  text-decoration-color: var(--red);
+}
+
 .profile-wrap {
   margin-top: var(--gap);
   border: 1px solid var(--grey-light);
@@ -309,7 +332,7 @@ input[type="file"] {
 
 .station {
   display: grid;
-  grid-template-columns: 26px 1fr 40px 128px;
+  grid-template-columns: 1fr 40px 128px;
   align-items: center;
   gap: 18px;
   padding: 18px 0;
@@ -319,8 +342,6 @@ input[type="file"] {
 .station:first-child { border-top: 1px solid var(--grey-light); }
 
 .station__index {
-  align-self: start;
-  margin-top: 2px;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 12px;
@@ -328,6 +349,7 @@ input[type="file"] {
   text-decoration: underline;
   text-decoration-color: var(--grey-light);
   text-underline-offset: 3px;
+  margin-right: 9px;
 }
 
 .station__info {
@@ -461,10 +483,10 @@ input[type="file"] {
    Responsive
 --------------------------------------------------------- */
 @media (max-width: 640px) {
-  .field-row { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: minmax(0, 1fr); }
 
   .station {
-    grid-template-columns: 20px 1fr 34px 96px;
+    grid-template-columns: 1fr 34px 96px;
     gap: 10px;
     row-gap: 6px;
     padding: 14px 0;
@@ -493,7 +515,7 @@ input[type="file"] {
 
 @media (max-width: 360px) {
   .station {
-    grid-template-columns: 18px 1fr 28px 86px;
+    grid-template-columns: 1fr 28px 86px;
     gap: 8px;
   }
 }
