@@ -516,18 +516,26 @@
       loading.hidden = true;
       board.hidden = false;
 
-      renderElevationProfile(ride.points, fromKm, toKm, stations);
-      lastProfileArgs = [ride.points, fromKm, toKm, stations];
+      const elevationPoints = downsampleElevation(ride.points);
+      renderElevationProfile(elevationPoints, fromKm, toKm, stations);
+      lastProfileArgs = [elevationPoints, fromKm, toKm, stations];
       renderStations(stations, weatherResults, isWholeRoute, placeNames);
 
-      if (activeSource === 'link') {
-        const routeId = extractRouteId(routeUrlInput.value);
-        updateShareUrl(routeId, dateInput.value, timeInput.value, speed, activeRangeMode, fromKm, toKm);
-        copyLinkBtn.hidden = !routeId;
-      } else {
-        copyLinkBtn.hidden = true;
-        history.replaceState(null, '', window.location.pathname);
-      }
+      // Save the computed result so it can be shared with a link — works
+      // for GPX uploads too, since we're storing the result, not the source.
+      await saveAndShowShareLink({
+        routeName: ride.name,
+        segmentKm,
+        durationHours: segmentKm / speed,
+        pointCount: count,
+        fromKm,
+        toKm,
+        isWholeRoute,
+        elevationPoints,
+        stations,
+        weatherResults,
+        placeNames,
+      });
 
       board.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {
@@ -554,21 +562,42 @@
   }
 
   // ---------- Shareable links ----------
-  // Only works for pasted RideWithGPS links — a GPX upload can't be encoded
-  // in a URL, so those searches stay local to this browser.
-  function updateShareUrl(routeId, date, time, speedVal, rangeMode, fromKmVal, toKmVal) {
-    if (!routeId) return;
-    const params = new URLSearchParams();
-    params.set('route', routeId);
-    params.set('date', date);
-    params.set('time', time);
-    params.set('speed', String(speedVal));
-    params.set('range', rangeMode);
-    if (rangeMode === 'custom') {
-      params.set('from', String(fromKmVal));
-      params.set('to', String(toKmVal));
+  // We store the *computed result* (not just the source), so this works
+  // for GPX uploads too, not just pasted links.
+  function downsampleElevation(points, maxPoints = 300) {
+    if (points.length <= maxPoints) {
+      return points.map((p) => ({ distKm: p.distKm, ele: p.ele }));
     }
-    history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
+    const stride = Math.ceil(points.length / maxPoints);
+    const out = [];
+    for (let i = 0; i < points.length; i += stride) {
+      out.push({ distKm: points[i].distKm, ele: points[i].ele });
+    }
+    const last = points[points.length - 1];
+    if (!out.length || out[out.length - 1].distKm !== last.distKm) {
+      out.push({ distKm: last.distKm, ele: last.ele });
+    }
+    return out;
+  }
+
+  async function saveAndShowShareLink(payload) {
+    try {
+      const res = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.id) {
+        copyLinkBtn.hidden = true;
+        return;
+      }
+      const shareUrl = `${window.location.origin}${window.location.pathname}?ride=${data.id}`;
+      history.replaceState(null, '', shareUrl);
+      copyLinkBtn.hidden = false;
+    } catch {
+      copyLinkBtn.hidden = true;
+    }
   }
 
   copyLinkBtn.addEventListener('click', async () => {
@@ -594,46 +623,41 @@
     }
   });
 
-  // If the page was opened with a shared link, prefill everything and run it.
-  function initFromUrl() {
+  function renderFromShared(data) {
+    routeNameEl.textContent = data.routeName || '—';
+    statDistance.textContent = Number(data.segmentKm || 0).toFixed(0);
+    statDuration.textContent = formatDuration(data.durationHours || 0);
+    statPoints.textContent = String(data.pointCount || (data.stations || []).length);
+
+    loading.hidden = true;
+    board.hidden = false;
+
+    renderElevationProfile(data.elevationPoints || [], data.fromKm, data.toKm, data.stations);
+    lastProfileArgs = [data.elevationPoints || [], data.fromKm, data.toKm, data.stations];
+    renderStations(data.stations || [], data.weatherResults || [], data.isWholeRoute, data.placeNames || []);
+
+    copyLinkBtn.hidden = false;
+    board.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // If the page was opened with a shared link, load and show it directly —
+  // no route fetching or weather calls needed, it's all cached already.
+  async function initFromSharedLink() {
     const params = new URLSearchParams(window.location.search);
-    const routeId = params.get('route');
-    if (!routeId) return;
+    const id = params.get('ride');
+    if (!id) return;
 
-    document.querySelectorAll('.tab[data-tab]').forEach((t) => t.classList.remove('is-active'));
-    document.querySelectorAll('.tab-panel[data-panel]').forEach((p) => p.classList.remove('is-active'));
-    document.querySelector('.tab[data-tab="link"]').classList.add('is-active');
-    document.querySelector('.tab-panel[data-panel="link"]').classList.add('is-active');
-    activeSource = 'link';
-    routeUrlInput.value = routeId;
-
-    const date = params.get('date');
-    const time = params.get('time');
-    const speedParam = params.get('speed');
-    const rangeParam = params.get('range');
-
-    if (date) dateInput.value = date;
-    if (time) timeInput.value = time;
-    if (speedParam) speedInput.value = speedParam;
-
-    if (rangeParam === 'custom') {
-      document.querySelectorAll('.tab[data-range-tab]').forEach((t) => t.classList.remove('is-active'));
-      document.querySelectorAll('.tab-panel[data-range-panel]').forEach((p) => p.classList.remove('is-active'));
-      document.querySelector('.tab[data-range-tab="custom"]').classList.add('is-active');
-      document.querySelector('.tab-panel[data-range-panel="custom"]').classList.add('is-active');
-      activeRangeMode = 'custom';
-      const fromParam = params.get('from');
-      const toParam = params.get('to');
-      if (fromParam) rangeFromInput.value = fromParam;
-      if (toParam) rangeToInput.value = toParam;
-    }
-
-    if (form.requestSubmit) {
-      form.requestSubmit();
-    } else {
-      form.dispatchEvent(new Event('submit', { cancelable: true }));
+    loading.hidden = false;
+    try {
+      const res = await fetch(`/api/share?id=${encodeURIComponent(id)}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'This shared forecast could not be found.');
+      renderFromShared(data);
+    } catch (err) {
+      loading.hidden = true;
+      showError(err.message || 'This shared forecast could not be loaded — it may have expired.');
     }
   }
 
-  initFromUrl();
+  initFromSharedLink();
 })();

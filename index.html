@@ -38,13 +38,13 @@
           <div class="tab-panel is-active" data-panel="link">
             <input type="text" id="route-url" name="route-url"
               placeholder="https://ridewithgps.com/routes/12345678 — or just the number" autocomplete="off" />
+            <p class="field__hint">Public RideWithGPS routes only — private routes can't be read without you signing in. Coming from Strava or Komoot? They don't offer a public link like this — export your route as a GPX file instead and use the upload tab.</p>
           </div>
 
           <div class="tab-panel" data-panel="gpx">
             <input type="file" id="gpx-file" name="gpx-file" accept=".gpx" />
+            <p class="field__hint">Works with GPX files exported from Strava, Komoot, Garmin Connect, or anywhere else — including private routes, since the file lives on your device.</p>
           </div>
-
-          <p class="field__hint" id="source-hint">Public RideWithGPS routes only — private routes can't be read without you signing in.</p>
         </div>
 
         <div class="field-row">
