@@ -6,7 +6,7 @@
 // asks that requests carry an identifying User-Agent — same courtesy as
 // yr.no. See README before deploying.
 
-const USER_AGENT = 'ride-weather-app/1.0 github.com/julesm (julesmataly@gmail.com)';
+const USER_AGENT = 'ride-weather-app/1.0 github.com/julesm(julesmataly@gmail.com)';
 
 function pickName(address, displayName) {
   if (!address) return displayName ? displayName.split(',')[0].trim() : null;

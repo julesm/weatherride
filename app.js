@@ -5,6 +5,8 @@
   const form = document.getElementById('ride-form');
   const routeUrlInput = document.getElementById('route-url');
   const gpxFileInput = document.getElementById('gpx-file');
+  const gpxDropzone = document.getElementById('gpx-dropzone');
+  const gpxDropzoneLabel = document.getElementById('gpx-dropzone-label');
   const dateInput = document.getElementById('depart-date');
   const timeInput = document.getElementById('depart-time');
   const speedInput = document.getElementById('speed');
@@ -61,6 +63,46 @@
       document.querySelector(`.tab-panel[data-range-panel="${name}"]`).classList.add('is-active');
       activeRangeMode = name;
     });
+  });
+
+  // ---------- GPX dropzone ----------
+  function updateDropzoneLabel() {
+    if (gpxFileInput.files && gpxFileInput.files.length) {
+      gpxDropzoneLabel.textContent = gpxFileInput.files[0].name;
+      gpxDropzone.classList.add('has-file');
+    } else {
+      gpxDropzoneLabel.textContent = 'Drag a GPX file here, or click to browse';
+      gpxDropzone.classList.remove('has-file');
+    }
+  }
+
+  gpxFileInput.addEventListener('change', updateDropzoneLabel);
+
+  ['dragenter', 'dragover'].forEach((evt) => {
+    gpxDropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      gpxDropzone.classList.add('is-dragover');
+    });
+  });
+
+  ['dragleave', 'dragend'].forEach((evt) => {
+    gpxDropzone.addEventListener(evt, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      gpxDropzone.classList.remove('is-dragover');
+    });
+  });
+
+  gpxDropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    gpxDropzone.classList.remove('is-dragover');
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) {
+      gpxFileInput.files = files;
+      updateDropzoneLabel();
+    }
   });
 
   // ---------- Helpers ----------
@@ -269,18 +311,25 @@
             return;
           }
           let cumulative = 0;
-          const points = source.map((node, i) => {
+          let prevPoint = null;
+          const points = [];
+          for (const node of source) {
             const lat = parseFloat(node.getAttribute('lat'));
             const lon = parseFloat(node.getAttribute('lon'));
+            if (Number.isNaN(lat) || Number.isNaN(lon)) continue;
             const eleNode = node.querySelector('ele');
             const ele = eleNode ? parseFloat(eleNode.textContent) : null;
-            const point = { lat, lon, ele };
-            if (i > 0) {
-              const prev = points[i - 1];
-              cumulative += haversineKm(prev, point);
+            const point = { lat, lon, ele: Number.isNaN(ele) ? null : ele };
+            if (prevPoint) {
+              cumulative += haversineKm(prevPoint, point);
             }
-            return { ...point, distKm: cumulative };
-          });
+            prevPoint = point;
+            points.push({ ...point, distKm: cumulative });
+          }
+          if (points.length < 2) {
+            reject(new Error('Could not find enough valid coordinates in that GPX file.'));
+            return;
+          }
           const nameNode = xml.querySelector('trk > name, metadata > name');
           resolve({ name: nameNode ? nameNode.textContent : file.name.replace(/\.gpx$/i, ''), points });
         } catch (err) {

@@ -5,7 +5,7 @@
 // returns 403. Replace the contact email below with your own before you
 // deploy — see README.
 
-const USER_AGENT = 'ride-weather-app/1.0 github.com/julesm (julesmataly@gmail.com)';
+const USER_AGENT = 'ride-weather-app/1.0 github.com/julesm(julesmataly@gmail.com)';
 
 // category maps to a custom SVG icon rendered client-side (see app.js `icon()`)
 const SYMBOLS = {

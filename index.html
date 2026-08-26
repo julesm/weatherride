@@ -16,7 +16,9 @@
 
   <header class="masthead">
     <div class="masthead__title">
-      <h1>RIDE&nbsp;/&nbsp;WEATHER</h1>
+      <a href="/" class="masthead__link" aria-label="Ride / Weather — back to home">
+        <h1>RIDE&nbsp;/&nbsp;WEATHER</h1>
+      </a>
       <p class="masthead__sub">Forecast along your route, not just at your door.</p>
     </div>
   </header>
@@ -42,7 +44,10 @@
           </div>
 
           <div class="tab-panel" data-panel="gpx">
-            <input type="file" id="gpx-file" name="gpx-file" accept=".gpx" />
+            <div class="dropzone" id="gpx-dropzone">
+              <input type="file" id="gpx-file" name="gpx-file" accept=".gpx" />
+              <p class="dropzone__label" id="gpx-dropzone-label">Drag a GPX file here, or click to browse</p>
+            </div>
             <p class="field__hint">Works with GPX files exported from Strava, Komoot, Garmin Connect, or anywhere else — including private routes, since the file lives on your device.</p>
           </div>
         </div>
