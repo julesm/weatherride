@@ -21,6 +21,7 @@
   const statPoints = document.getElementById('stat-points');
   const profileSvg = document.getElementById('elevation-profile');
   const copyLinkBtn = document.getElementById('copy-link-btn');
+  const shareErrorEl = document.getElementById('share-error');
   const copyLinkLabel = document.getElementById('copy-link-label');
 
   let activeSource = 'link';
@@ -581,21 +582,40 @@
   }
 
   async function saveAndShowShareLink(payload) {
+    shareErrorEl.hidden = true;
     try {
       const res = await fetch('/api/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      const data = await res.json();
-      if (!res.ok || !data.id) {
+
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        // Server didn't return JSON at all — usually means the request
+        // never reached our function (e.g. api/share.js missing from the
+        // deploy, or a platform-level error page came back instead).
+        shareErrorEl.textContent = `Sharing failed: server returned ${res.status} ${res.statusText || ''} instead of a valid response. Check that api/share.js was uploaded and deployed.`;
+        shareErrorEl.hidden = false;
         copyLinkBtn.hidden = true;
         return;
       }
+
+      if (!res.ok || !data.id) {
+        shareErrorEl.textContent = `Sharing failed: ${data.error || `server returned ${res.status}`}`;
+        shareErrorEl.hidden = false;
+        copyLinkBtn.hidden = true;
+        return;
+      }
+
       const shareUrl = `${window.location.origin}${window.location.pathname}?ride=${data.id}`;
       history.replaceState(null, '', shareUrl);
       copyLinkBtn.hidden = false;
-    } catch {
+    } catch (err) {
+      shareErrorEl.textContent = `Sharing failed: ${err.message || 'could not reach the server.'}`;
+      shareErrorEl.hidden = false;
       copyLinkBtn.hidden = true;
     }
   }
