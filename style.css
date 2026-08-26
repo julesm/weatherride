@@ -389,6 +389,21 @@ input[type="file"] {
 
 .station:first-child { border-top: 1px solid var(--grey-light); }
 
+.station-link {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
+  padding: 7px 0;
+  background: var(--grey-wash);
+  border-bottom: 1px solid var(--grey-light);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: var(--grey);
+}
+
 .station__index {
   font-family: var(--font-display);
   font-weight: 600;

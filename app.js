@@ -155,6 +155,91 @@
     });
   }
 
+  // ---------- Terrain-aware pacing ----------
+  // A rough, clearly-approximate model of how grade affects cycling speed —
+  // not physics, just a curve calibrated against typical average speeds at
+  // various gradients. Used to redistribute the ride's total time (which
+  // still comes out to exactly segmentKm / avgSpeed overall) unevenly across
+  // the route, so a climb takes proportionally longer than a descent instead
+  // of everything being paced identically.
+  function relativeSpeedForGrade(grade) {
+    if (grade >= 0) {
+      return 1 / (1 + 12 * grade + 60 * grade * grade);
+    }
+    const down = -grade;
+    return 1 + Math.min(0.35, 7 * down); // descents help, but capped — nobody free-falls forever
+  }
+
+  // Returns { hoursAtKm(km) } — hours elapsed since fromKm, terrain-weighted,
+  // guaranteed to sum to exactly totalHours at toKm. Falls back to plain
+  // uniform pacing if there isn't enough elevation data to work with.
+  function buildPaceSchedule(points, fromKm, toKm, totalHours) {
+    const seg = points.filter(
+      (p) => p.distKm >= fromKm - 0.001 && p.distKm <= toKm + 0.001 && p.ele !== null && p.ele !== undefined
+    );
+
+    if (seg.length < 2 || toKm <= fromKm) {
+      const span = toKm - fromKm || 1;
+      return {
+        hoursAtKm(km) {
+          const clamped = Math.min(Math.max(km, fromKm), toKm);
+          return totalHours * ((clamped - fromKm) / span);
+        },
+      };
+    }
+
+    const cum = [{ distKm: seg[0].distKm, relHours: 0 }];
+    let relTotal = 0;
+    for (let i = 1; i < seg.length; i++) {
+      const a = seg[i - 1];
+      const b = seg[i];
+      const distKmSeg = b.distKm - a.distKm;
+      if (distKmSeg <= 0) {
+        cum.push({ distKm: b.distKm, relHours: relTotal });
+        continue;
+      }
+      const grade = (b.ele - a.ele) / (distKmSeg * 1000);
+      const relSpeed = relativeSpeedForGrade(grade);
+      relTotal += distKmSeg / Math.max(relSpeed, 0.05);
+      cum.push({ distKm: b.distKm, relHours: relTotal });
+    }
+
+    const scale = relTotal > 0 ? totalHours / relTotal : 0;
+
+    function hoursAtKm(km) {
+      const clamped = Math.min(Math.max(km, cum[0].distKm), cum[cum.length - 1].distKm);
+      let lo = cum[0];
+      let hi = cum[cum.length - 1];
+      for (let i = 1; i < cum.length; i++) {
+        if (cum[i].distKm >= clamped) {
+          hi = cum[i];
+          lo = cum[i - 1];
+          break;
+        }
+      }
+      const span = hi.distKm - lo.distKm;
+      const t = span > 0 ? (clamped - lo.distKm) / span : 0;
+      return (lo.relHours + t * (hi.relHours - lo.relHours)) * scale;
+    }
+
+    return { hoursAtKm };
+  }
+
+  // Elevation gain between two distances, or null if there's no usable
+  // elevation data in that range (rather than misleadingly showing 0).
+  function climbingBetweenKm(points, kmStart, kmEnd) {
+    const seg = points.filter(
+      (p) => p.distKm >= kmStart - 0.001 && p.distKm <= kmEnd + 0.001 && p.ele !== null && p.ele !== undefined
+    );
+    if (seg.length < 2) return null;
+    let gain = 0;
+    for (let i = 1; i < seg.length; i++) {
+      const delta = seg[i].ele - seg[i - 1].ele;
+      if (delta > 0) gain += delta;
+    }
+    return Math.round(gain);
+  }
+
   // ---------- Colour Swiss-style weather icons ----------
   // Every icon is a flat circular "badge" of the same size and position
   // (cx=12, cy=12, r=9) so rows line up no matter which weather type shows.
@@ -341,10 +426,9 @@
   }
 
   // ---------- Weather ----------
-  async function fetchWeather(stations, departureDate, speedKmh, fromKm) {
+  async function fetchWeather(stations, departureDate) {
     const payload = stations.map((s) => {
-      const hours = (s.targetKm - fromKm) / speedKmh;
-      const arrival = new Date(departureDate.getTime() + hours * 3600 * 1000);
+      const arrival = new Date(departureDate.getTime() + s.hoursFromStart * 3600 * 1000);
       return {
         lat: s.lat,
         lon: s.lon,
@@ -440,7 +524,7 @@
     `;
   }
 
-  function renderStations(stations, weatherResults, isWholeRoute, placeNames) {
+  function renderStations(stations, weatherResults, isWholeRoute, placeNames, elevationSource) {
     stationsEl.innerHTML = '';
     stations.forEach((s, i) => {
       const w = weatherResults[i];
@@ -457,6 +541,26 @@
         : `${indexHtml}${kmLabel}`;
       const uid = `${i}-${Math.round(s.targetKm)}`;
 
+      const appendConnector = () => {
+        if (i >= stations.length - 1) return;
+        const next = stations[i + 1];
+        const distBetween = next.targetKm - s.targetKm;
+        const climb = elevationSource ? climbingBetweenKm(elevationSource, s.targetKm, next.targetKm) : null;
+        const hoursBetween =
+          typeof next.hoursFromStart === 'number' && typeof s.hoursFromStart === 'number'
+            ? Math.max(0, next.hoursFromStart - s.hoursFromStart)
+            : null;
+
+        const link = document.createElement('div');
+        link.className = 'station-link';
+        link.innerHTML = `
+          <span>${distBetween.toFixed(0)} km</span>
+          ${climb !== null ? `<span>↗ ${climb} m</span>` : ''}
+          ${hoursBetween !== null ? `<span>${formatDuration(hoursBetween)}</span>` : ''}
+        `;
+        stationsEl.appendChild(link);
+      };
+
       if (!w.weather) {
         row.classList.add('station--error');
         row.innerHTML = `
@@ -468,6 +572,7 @@
           <div class="station__detail"><span class="station__sub">${w.error || 'No data'}</span></div>
         `;
         stationsEl.appendChild(row);
+        appendConnector();
         return;
       }
 
@@ -493,6 +598,7 @@
         </div>
       `;
       stationsEl.appendChild(row);
+      appendConnector();
     });
   }
 
@@ -553,8 +659,16 @@
       const count = stationCountFor(segmentKm);
       const stations = pickStations(ride.points, count, fromKm, toKm);
 
+      // Terrain-adjusted pacing: total time still equals segmentKm / speed
+      // exactly, but a climb eats a bigger share of it than a flat stretch.
+      const totalHours = segmentKm / speed;
+      const paceSchedule = buildPaceSchedule(ride.points, fromKm, toKm, totalHours);
+      stations.forEach((s) => {
+        s.hoursFromStart = paceSchedule.hoursAtKm(s.targetKm);
+      });
+
       const [weatherResults, placeNames] = await Promise.all([
-        fetchWeather(stations, departureDate, speed, fromKm),
+        fetchWeather(stations, departureDate),
         fetchPlaceNames(stations),
       ]);
 
@@ -569,7 +683,7 @@
       const elevationPoints = downsampleElevation(ride.points);
       renderElevationProfile(elevationPoints, fromKm, toKm, stations);
       lastProfileArgs = [elevationPoints, fromKm, toKm, stations];
-      renderStations(stations, weatherResults, isWholeRoute, placeNames);
+      renderStations(stations, weatherResults, isWholeRoute, placeNames, ride.points);
 
       // Save the computed result so it can be shared with a link — works
       // for GPX uploads too, since we're storing the result, not the source.
@@ -703,7 +817,7 @@
 
     renderElevationProfile(data.elevationPoints || [], data.fromKm, data.toKm, data.stations);
     lastProfileArgs = [data.elevationPoints || [], data.fromKm, data.toKm, data.stations];
-    renderStations(data.stations || [], data.weatherResults || [], data.isWholeRoute, data.placeNames || []);
+    renderStations(data.stations || [], data.weatherResults || [], data.isWholeRoute, data.placeNames || [], data.elevationPoints || []);
 
     copyLinkBtn.hidden = false;
     board.scrollIntoView({ behavior: 'smooth', block: 'start' });
