@@ -164,10 +164,10 @@
   // of everything being paced identically.
   function relativeSpeedForGrade(grade) {
     if (grade >= 0) {
-      return 1 / (1 + 12 * grade + 60 * grade * grade);
+      return 1 / (1 + 8 * grade + 220 * grade * grade);
     }
     const down = -grade;
-    return 1 + Math.min(0.35, 7 * down); // descents help, but capped — nobody free-falls forever
+    return 1 + Math.min(0.65, 9 * down); // descents help a lot, but capped — nobody free-falls forever
   }
 
   // Returns { hoursAtKm(km) } — hours elapsed since fromKm, terrain-weighted,

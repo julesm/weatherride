@@ -393,15 +393,19 @@ input[type="file"] {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px 16px;
-  padding: 7px 0;
+  align-items: center;
+  gap: 8px 20px;
+  width: min(380px, 100%);
+  margin: 14px auto;
+  padding: 12px 22px;
   background: var(--grey-wash);
-  border-bottom: 1px solid var(--grey-light);
+  border: 1px solid var(--grey-light);
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.02em;
   color: var(--grey);
+  text-align: center;
 }
 
 .station__index {
