@@ -74,7 +74,7 @@ LICENSE             MIT license
 
 ## If a deploy doesn't seem to show your changes
 
-`index.html` loads `style.css` and `app.js` with a version tag on the end (`style.css?v=8`). If you ever edit those files directly and a redeploy still shows the old version, bump that number (`?v=9`, etc.) — it forces browsers and any CDN caching to treat it as a new file instead of reusing an old cached copy.
+`index.html` loads `style.css` and `app.js` with a version tag on the end (`style.css?v=9`). If you ever edit those files directly and a redeploy still shows the old version, bump that number (`?v=10`, etc.) — it forces browsers and any CDN caching to treat it as a new file instead of reusing an old cached copy.
 
 ## Limits worth knowing
 

@@ -602,14 +602,16 @@
             ? Math.max(0, next.hoursFromStart - s.hoursFromStart)
             : null;
         const windFromDeg = w.weather ? w.weather.windDirection : null;
+        const windSpeedMs = w.weather ? w.weather.windSpeed : null;
+        const isStrongWind = typeof windSpeedMs === 'number' && windSpeedMs > 6;
         const tailwindPct = elevationSource
           ? tailwindPercentForSegment(elevationSource, s.targetKm, next.targetKm, windFromDeg)
           : null;
         const windLabel =
           tailwindPct !== null
             ? tailwindPct >= 50
-              ? `<span>${tailwindPct}% tailwind</span>`
-              : `<span class="is-headwind">${100 - tailwindPct}% headwind</span>`
+              ? `<span class="${isStrongWind ? 'is-tailwind' : ''}">${tailwindPct}% tailwind</span>`
+              : `<span class="${isStrongWind ? 'is-headwind' : ''}">${100 - tailwindPct}% headwind</span>`
             : '';
 
         const link = document.createElement('div');

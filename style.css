@@ -399,7 +399,6 @@ input[type="file"] {
   margin: 14px auto;
   padding: 12px 22px;
   background: var(--grey-wash);
-  border: 1px solid var(--grey-light);
   font-family: var(--font-display);
   font-weight: 600;
   font-size: 12px;
@@ -410,6 +409,10 @@ input[type="file"] {
 
 .station-link .is-headwind {
   color: var(--red);
+}
+
+.station-link .is-tailwind {
+  color: #1a7a3c;
 }
 
 .station__index {
@@ -467,7 +470,7 @@ input[type="file"] {
 .station__temp.is-warm { color: var(--red); }
 
 .station__sub {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--grey);
   text-align: right;
   display: inline-flex;
