@@ -408,6 +408,10 @@ input[type="file"] {
   text-align: center;
 }
 
+.station-link .is-headwind {
+  color: var(--red);
+}
+
 .station__index {
   font-family: var(--font-display);
   font-weight: 600;

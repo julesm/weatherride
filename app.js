@@ -240,6 +240,57 @@
     return Math.round(gain);
   }
 
+  // ---------- Wind alignment ----------
+  // What share of a segment's distance has the route heading roughly the
+  // same way the wind is blowing (tailwind-ish) vs against it (headwind-ish).
+  // Approximated using the wind reading at the start of the segment — wind
+  // fields don't meaningfully vary over a few km, so one reading per segment
+  // is a reasonable trade-off against calling the weather API far more often.
+  function bearingBetween(a, b) {
+    const toRad = (d) => (d * Math.PI) / 180;
+    const toDeg = (r) => (r * 180) / Math.PI;
+    const lat1 = toRad(a.lat);
+    const lat2 = toRad(b.lat);
+    const dLon = toRad(b.lon - a.lon);
+    const y = Math.sin(dLon) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+    return (toDeg(Math.atan2(y, x)) + 360) % 360;
+  }
+
+  function angularDiff(a, b) {
+    let diff = Math.abs(a - b) % 360;
+    if (diff > 180) diff = 360 - diff;
+    return diff;
+  }
+
+  // Returns 0–100 (% of segment distance that's tailwind-ish), or null if
+  // there's no wind direction or not enough points to work with.
+  function tailwindPercentForSegment(points, kmStart, kmEnd, windFromDeg) {
+    if (windFromDeg === null || windFromDeg === undefined) return null;
+    const windToDeg = (windFromDeg + 180) % 360; // direction the wind is blowing TOWARD
+    const seg = points.filter(
+      (p) =>
+        p.distKm >= kmStart - 0.001 &&
+        p.distKm <= kmEnd + 0.001 &&
+        typeof p.lat === 'number' &&
+        typeof p.lon === 'number'
+    );
+    if (seg.length < 2) return null;
+    let favorableKm = 0;
+    let totalKm = 0;
+    for (let i = 1; i < seg.length; i++) {
+      const a = seg[i - 1];
+      const b = seg[i];
+      const d = b.distKm - a.distKm;
+      if (d <= 0) continue;
+      const bearing = bearingBetween(a, b);
+      if (angularDiff(bearing, windToDeg) < 90) favorableKm += d;
+      totalKm += d;
+    }
+    if (totalKm <= 0) return null;
+    return Math.round((favorableKm / totalKm) * 100);
+  }
+
   // ---------- Colour Swiss-style weather icons ----------
   // Every icon is a flat circular "badge" of the same size and position
   // (cx=12, cy=12, r=9) so rows line up no matter which weather type shows.
@@ -550,6 +601,16 @@
           typeof next.hoursFromStart === 'number' && typeof s.hoursFromStart === 'number'
             ? Math.max(0, next.hoursFromStart - s.hoursFromStart)
             : null;
+        const windFromDeg = w.weather ? w.weather.windDirection : null;
+        const tailwindPct = elevationSource
+          ? tailwindPercentForSegment(elevationSource, s.targetKm, next.targetKm, windFromDeg)
+          : null;
+        const windLabel =
+          tailwindPct !== null
+            ? tailwindPct >= 50
+              ? `<span>${tailwindPct}% tailwind</span>`
+              : `<span class="is-headwind">${100 - tailwindPct}% headwind</span>`
+            : '';
 
         const link = document.createElement('div');
         link.className = 'station-link';
@@ -557,6 +618,7 @@
           <span>${distBetween.toFixed(0)} km</span>
           ${climb !== null ? `<span>↗ ${climb} m</span>` : ''}
           ${hoursBetween !== null ? `<span>${formatDuration(hoursBetween)}</span>` : ''}
+          ${windLabel}
         `;
         stationsEl.appendChild(link);
       };
@@ -730,16 +792,16 @@
   // for GPX uploads too, not just pasted links.
   function downsampleElevation(points, maxPoints = 300) {
     if (points.length <= maxPoints) {
-      return points.map((p) => ({ distKm: p.distKm, ele: p.ele }));
+      return points.map((p) => ({ distKm: p.distKm, ele: p.ele, lat: p.lat, lon: p.lon }));
     }
     const stride = Math.ceil(points.length / maxPoints);
     const out = [];
     for (let i = 0; i < points.length; i += stride) {
-      out.push({ distKm: points[i].distKm, ele: points[i].ele });
+      out.push({ distKm: points[i].distKm, ele: points[i].ele, lat: points[i].lat, lon: points[i].lon });
     }
     const last = points[points.length - 1];
     if (!out.length || out[out.length - 1].distKm !== last.distKm) {
-      out.push({ distKm: last.distKm, ele: last.ele });
+      out.push({ distKm: last.distKm, ele: last.ele, lat: last.lat, lon: last.lon });
     }
     return out;
   }
