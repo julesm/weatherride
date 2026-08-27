@@ -389,6 +389,29 @@ input[type="file"] {
 
 .station:first-child { border-top: 1px solid var(--grey-light); }
 
+.station-link {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 8px 20px;
+  width: min(380px, 100%);
+  margin: 14px auto;
+  padding: 12px 22px;
+  background: var(--grey-wash);
+  border: 1px solid var(--grey-light);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--grey);
+  text-align: center;
+}
+
+.station-link .is-headwind {
+  color: var(--red);
+}
+
 .station__index {
   font-family: var(--font-display);
   font-weight: 600;
