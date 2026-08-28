@@ -438,7 +438,7 @@ input[type="file"] {
 }
 
 .station__time {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--grey);
 }
 
@@ -449,7 +449,8 @@ input[type="file"] {
   width: 40px;
 }
 
-.station__symbol svg {
+.station__symbol svg,
+.station__symbol img {
   width: 32px;
   height: 32px;
   overflow: visible;
@@ -470,7 +471,7 @@ input[type="file"] {
 .station__temp.is-warm { color: var(--red); }
 
 .station__sub {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--grey);
   text-align: right;
   display: inline-flex;
@@ -478,6 +479,12 @@ input[type="file"] {
   gap: 4px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.station__precip {
+  font-size: 14px;
+  color: var(--grey);
+  text-align: right;
 }
 
 .wind-arrow {
@@ -569,7 +576,8 @@ input[type="file"] {
     display: flex;
     width: 34px;
   }
-  .station__symbol svg {
+  .station__symbol svg,
+  .station__symbol img {
     width: 26px;
     height: 26px;
   }

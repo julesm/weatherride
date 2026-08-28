@@ -291,91 +291,25 @@
     return Math.round((favorableKm / totalKm) * 100);
   }
 
-  // ---------- Colour Swiss-style weather icons ----------
-  // Every icon is a flat circular "badge" of the same size and position
-  // (cx=12, cy=12, r=9) so rows line up no matter which weather type shows.
-  // Gradient ids are suffixed with a unique id per render to avoid collisions across rows.
-  function iconSvg(category, uid) {
-    const g = (name) => `${name}-${uid}`;
-    switch (category) {
-      case 'sun':
-        return `<svg viewBox="0 0 24 24">
-          <defs><radialGradient id="${g('sun')}" cx="35%" cy="30%" r="75%">
-            <stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/>
-          </radialGradient></defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('sun')})"/>
-        </svg>`;
-      case 'sun-cloud':
-        return `<svg viewBox="0 0 24 24">
-          <defs>
-            <radialGradient id="${g('sunc')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#FFE49A"/><stop offset="100%" stop-color="#FFB800"/></radialGradient>
-            <linearGradient id="${g('cloudc')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#F1F2F4"/><stop offset="100%" stop-color="#C7CCD3"/></linearGradient>
-          </defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('sunc')})"/>
-          <ellipse cx="13.3" cy="14.3" rx="6.2" ry="4.2" fill="url(#${g('cloudc')})"/>
-        </svg>`;
-      case 'cloud':
-        return `<svg viewBox="0 0 24 24">
-          <defs><radialGradient id="${g('cloud')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#DEE1E5"/><stop offset="100%" stop-color="#AFB5BE"/></radialGradient></defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('cloud')})"/>
-        </svg>`;
-      case 'fog':
-        return `<svg viewBox="0 0 24 24">
-          <defs><radialGradient id="${g('fog')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#DEE1E5"/><stop offset="100%" stop-color="#AFB5BE"/></radialGradient></defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('fog')})"/>
-          <g stroke="#fff" stroke-width="1.4" stroke-linecap="round" opacity="0.85">
-            <path d="M7 10h10M6.5 13h11M7.5 16h9"/>
-          </g>
-        </svg>`;
-      case 'rain':
-        return `<svg viewBox="0 0 24 24">
-          <defs>
-            <radialGradient id="${g('rc')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#8FB9E8"/><stop offset="100%" stop-color="#3E7FC4"/></radialGradient>
-          </defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('rc')})"/>
-          <g fill="#fff"><path d="M9 11.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M13.6 12.6c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/><path d="M17 11.5c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z"/></g>
-        </svg>`;
-      case 'sleet':
-        return `<svg viewBox="0 0 24 24">
-          <defs><radialGradient id="${g('sl')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#8FB9E8"/><stop offset="100%" stop-color="#3E7FC4"/></radialGradient></defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('sl')})"/>
-          <path d="M9.3 12.2c0 1-1.6 1-1.6 0 0-.7.8-1.7.8-1.7s.8 1 .8 1.7Z" fill="#fff"/>
-          <g stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M14.5 10.5v4.2M13.1 11.5l2.8 2.2M15.9 11.5l-2.8 2.2"/></g>
-        </svg>`;
-      case 'snow':
-        return `<svg viewBox="0 0 24 24">
-          <defs><radialGradient id="${g('sn')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#DCEBFC"/><stop offset="100%" stop-color="#A9C9EE"/></radialGradient></defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('sn')})"/>
-          <g stroke="#fff" stroke-width="1.4" stroke-linecap="round">
-            <path d="M12 7.5v9M8.4 9.5l7.2 5M15.6 9.5l-7.2 5"/>
-          </g>
-        </svg>`;
-      case 'thunder':
-        return `<svg viewBox="0 0 24 24">
-          <defs>
-            <radialGradient id="${g('th')}" cx="35%" cy="30%" r="75%"><stop offset="0%" stop-color="#6E7382"/><stop offset="100%" stop-color="#3B3F4A"/></radialGradient>
-            <linearGradient id="${g('tb')}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFD666"/><stop offset="100%" stop-color="#F2860B"/></linearGradient>
-          </defs>
-          <circle cx="12" cy="12" r="9" fill="url(#${g('th')})"/>
-          <path d="M13.3 6.8 9 13.4h2.9l-1 4.4 4.6-6.6h-2.8l1-4.4Z" fill="url(#${g('tb')})"/>
-        </svg>`;
-      default:
-        return `<svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="9" fill="none" stroke="#C3C8D0" stroke-width="1.4"/>
-          <path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1.5 4.5c-.7.5-1.5 1-1.5 2" fill="none" stroke="#C3C8D0" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>`;
+  // ---------- Weather icons (official Yr / MET Norway set) ----------
+  // Filenames in /icons match the API's symbol_code exactly — no mapping
+  // needed. Falls back to a plain outline glyph if a point has no data.
+  function iconImg(symbolCode, label) {
+    if (!symbolCode) {
+      return `<svg viewBox="0 0 24 24" width="32" height="32">
+        <circle cx="12" cy="12" r="9" fill="none" stroke="#C3C8D0" stroke-width="1.4"/>
+        <path d="M12 16v.01M12 8a2.5 2.5 0 0 1 1.5 4.5c-.7.5-1.5 1-1.5 2" fill="none" stroke="#C3C8D0" stroke-width="1.4" stroke-linecap="round"/>
+      </svg>`;
     }
-  }
-
-  function icon(category, uid) {
-    return iconSvg(category, uid);
+    return `<img src="icons/${symbolCode}.svg" alt="${label || symbolCode}" title="${label || symbolCode}" width="32" height="32" loading="lazy" />`;
   }
 
   // Small arrow indicating where the wind is blowing TOWARD (met "from" direction + 180°)
   function windArrowSvg(fromDegrees) {
     const toDegrees = (fromDegrees + 180) % 360;
     return `<svg class="wind-arrow" viewBox="0 0 24 24" style="transform: rotate(${toDegrees}deg)">
-      <path d="M12 1.5 L19 16 L12 12.2 L5 16 Z" fill="#111111"/>
+      <line x1="12" y1="20" x2="12" y2="5" stroke="#111111" stroke-width="2.2" stroke-linecap="round"/>
+      <path d="M6.5 10.5 L12 4 L17.5 10.5" fill="none" stroke="#111111" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>`;
   }
 
@@ -590,7 +524,6 @@
       const kmHtml = place
         ? `${indexHtml}${kmLabel} <span class="station__place">– ${place}</span>`
         : `${indexHtml}${kmLabel}`;
-      const uid = `${i}-${Math.round(s.targetKm)}`;
 
       const appendConnector = () => {
         if (i >= stations.length - 1) return;
@@ -632,7 +565,7 @@
             <span class="station__km">${kmHtml}</span>
             <span class="station__time">${timeStr}</span>
           </div>
-          <div class="station__symbol">${icon('unknown', uid)}</div>
+          <div class="station__symbol">${iconImg(null, 'No data')}</div>
           <div class="station__detail"><span class="station__sub">${w.error || 'No data'}</span></div>
         `;
         stationsEl.appendChild(row);
@@ -655,10 +588,11 @@
           <span class="station__km">${kmHtml}</span>
           <span class="station__time">${timeStr}</span>
         </div>
-        <div class="station__symbol" title="${w.weather.symbol.label}">${icon(w.weather.symbol.category, uid)}</div>
+        <div class="station__symbol">${iconImg(w.weather.symbol.code, w.weather.symbol.label)}</div>
         <div class="station__detail">
           <span class="station__temp ${isWarm ? 'is-warm' : ''}">${t !== null ? Math.round(t) + '°' : '—'}</span>
-          <span class="station__sub">${windHtml}${precip ? ` · ${precip}mm` : ''}</span>
+          <span class="station__sub">${windHtml}</span>
+          ${precip ? `<span class="station__precip">${precip}mm precip</span>` : ''}
         </div>
       `;
       stationsEl.appendChild(row);

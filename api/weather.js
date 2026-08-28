@@ -7,36 +7,57 @@
 
 const USER_AGENT = 'ride-weather-app/1.0 github.com/julesm (julesmataly@gmail.com)';
 
-// category maps to a custom SVG icon rendered client-side (see app.js `icon()`)
-const SYMBOLS = {
-  clearsky: { category: 'sun', label: 'Clear sky' },
-  fair: { category: 'sun-cloud', label: 'Fair' },
-  partlycloudy: { category: 'sun-cloud', label: 'Partly cloudy' },
-  cloudy: { category: 'cloud', label: 'Cloudy' },
-  fog: { category: 'fog', label: 'Fog' },
-  lightrain: { category: 'rain', label: 'Light rain' },
-  rain: { category: 'rain', label: 'Rain' },
-  heavyrain: { category: 'rain', label: 'Heavy rain' },
-  lightrainshowers: { category: 'rain', label: 'Light showers' },
-  rainshowers: { category: 'rain', label: 'Rain showers' },
-  heavyrainshowers: { category: 'rain', label: 'Heavy showers' },
-  lightsleet: { category: 'sleet', label: 'Light sleet' },
-  sleet: { category: 'sleet', label: 'Sleet' },
-  heavysleet: { category: 'sleet', label: 'Heavy sleet' },
-  lightsnow: { category: 'snow', label: 'Light snow' },
-  snow: { category: 'snow', label: 'Snow' },
-  heavysnow: { category: 'snow', label: 'Heavy snow' },
-  lightsnowshowers: { category: 'snow', label: 'Light snow showers' },
-  snowshowers: { category: 'snow', label: 'Snow showers' },
-  rainandthunder: { category: 'thunder', label: 'Thunder & rain' },
-  rainshowersandthunder: { category: 'thunder', label: 'Thunder showers' },
-  thunderstorm: { category: 'thunder', label: 'Thunderstorm' },
+// Human-readable labels for alt text / tooltips, keyed by the base symbol
+// code (day/night/polartwilight suffix stripped). The actual icon shown to
+// the user is the real symbol_code SVG in /icons — see app.js.
+const LABELS = {
+  clearsky: 'Clear sky',
+  fair: 'Fair',
+  partlycloudy: 'Partly cloudy',
+  cloudy: 'Cloudy',
+  fog: 'Fog',
+  lightrain: 'Light rain',
+  lightrainandthunder: 'Light rain & thunder',
+  rain: 'Rain',
+  rainandthunder: 'Rain & thunder',
+  heavyrain: 'Heavy rain',
+  heavyrainandthunder: 'Heavy rain & thunder',
+  lightrainshowers: 'Light rain showers',
+  lightrainshowersandthunder: 'Light rain showers & thunder',
+  rainshowers: 'Rain showers',
+  rainshowersandthunder: 'Rain showers & thunder',
+  heavyrainshowers: 'Heavy rain showers',
+  heavyrainshowersandthunder: 'Heavy rain showers & thunder',
+  lightsleet: 'Light sleet',
+  lightsleetandthunder: 'Light sleet & thunder',
+  sleet: 'Sleet',
+  sleetandthunder: 'Sleet & thunder',
+  heavysleet: 'Heavy sleet',
+  heavysleetandthunder: 'Heavy sleet & thunder',
+  lightsleetshowers: 'Light sleet showers',
+  sleetshowers: 'Sleet showers',
+  sleetshowersandthunder: 'Sleet showers & thunder',
+  heavysleetshowers: 'Heavy sleet showers',
+  heavysleetshowersandthunder: 'Heavy sleet showers & thunder',
+  lightssleetshowersandthunder: 'Light sleet showers & thunder',
+  lightsnow: 'Light snow',
+  lightsnowandthunder: 'Light snow & thunder',
+  snow: 'Snow',
+  snowandthunder: 'Snow & thunder',
+  heavysnow: 'Heavy snow',
+  heavysnowandthunder: 'Heavy snow & thunder',
+  lightsnowshowers: 'Light snow showers',
+  lightssnowshowersandthunder: 'Light snow showers & thunder',
+  snowshowers: 'Snow showers',
+  snowshowersandthunder: 'Snow showers & thunder',
+  heavysnowshowers: 'Heavy snow showers',
+  heavysnowshowersandthunder: 'Heavy snow showers & thunder',
 };
 
 function symbolFor(code) {
-  if (!code) return { category: 'unknown', label: 'No data' };
+  if (!code) return { code: null, label: 'No data' };
   const base = code.replace(/_(day|night|polartwilight)$/, '');
-  return SYMBOLS[base] || { category: 'unknown', label: base };
+  return { code, label: LABELS[base] || base };
 }
 
 function nearestEntry(timeseries, targetIso) {
