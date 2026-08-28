@@ -550,10 +550,14 @@
         const link = document.createElement('div');
         link.className = 'station-link';
         link.innerHTML = `
-          <span>${distBetween.toFixed(0)} km</span>
-          ${climb !== null ? `<span>↗ ${climb} m</span>` : ''}
-          ${hoursBetween !== null ? `<span>${formatDuration(hoursBetween)}</span>` : ''}
-          ${windLabel}
+          <div class="station-link__line">
+            <span>${distBetween.toFixed(0)} km</span>
+            ${climb !== null ? `<span>↗ ${climb} m</span>` : ''}
+          </div>
+          <div class="station-link__line">
+            ${hoursBetween !== null ? `<span>${formatDuration(hoursBetween)}</span>` : ''}
+            ${windLabel}
+          </div>
         `;
         stationsEl.appendChild(link);
       };
